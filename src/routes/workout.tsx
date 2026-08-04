@@ -126,6 +126,7 @@ function WorkoutLogger({
       completed: false,
     }));
   });
+  const [cardioMinutes, setCardioMinutes] = useState(existing?.cardioMinutes || 0);
 
   const allCompleted = exerciseState.every((e) => e.completed);
 
