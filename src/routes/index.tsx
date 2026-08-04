@@ -65,7 +65,7 @@ function DashboardPage() {
   const weightChartData = measurements
     .slice()
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .map((m) => ({ label: m.date.slice(5), value: m.bodyWeight }));
+    .map((m) => ({ label: m.date.slice(5), value: m.weight }));
 
   const volumeChartData = workouts
     .filter((w) => w.completed)
