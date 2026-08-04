@@ -8,9 +8,11 @@ import {
   Timer,
   ChevronRight,
   Calendar,
+  Activity,
+  Weight,
 } from "lucide-react";
 import { ProgressRing } from "@/components/progress-ring";
-import { useUserSettings, useWorkouts, useNutrition } from "@/hooks/use-app-data";
+import { useUserSettings, useWorkouts, useNutrition, useMeasurements } from "@/hooks/use-app-data";
 import {
   getWorkoutTypeForDay,
   getExercisesForDay,
@@ -19,6 +21,7 @@ import {
 } from "@/lib/workout-data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { SimpleLineChart } from "@/components/charts/simple-line-chart";
 
 export const Route = createFileRoute("/")({
   head: () => ({
