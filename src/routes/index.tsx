@@ -41,6 +41,7 @@ function DashboardPage() {
   const [settings] = useUserSettings();
   const [workouts] = useWorkouts();
   const [nutrition] = useNutrition();
+  const [measurements] = useMeasurements();
 
   const today = formatDate(new Date());
   const todayWorkout = workouts.find((w) => w.date === today);
@@ -60,6 +61,25 @@ function DashboardPage() {
     if (type === "Rest") return true;
     return workouts.some((w) => w.dayNumber === day && w.completed);
   });
+
+  const weightChartData = measurements
+    .slice()
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .map((m) => ({ label: m.date.slice(5), value: m.bodyWeight }));
+
+  const volumeChartData = workouts
+    .filter((w) => w.completed)
+    .slice()
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .map((w) => ({
+      label: `D${w.dayNumber}`,
+      value: w.exercises.reduce((total, ex) => {
+        return (
+          total +
+          ex.sets.reduce((setTotal, set) => setTotal + (set.weight ?? 0) * (set.reps ?? 0), 0)
+        );
+      }, 0),
+    }));
 
   return (
     <div className="space-y-6 animate-fade-in">
