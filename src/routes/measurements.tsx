@@ -106,6 +106,69 @@ function MeasurementsPage() {
         Save Measurements
       </Button>
 
+      <Card className="card-elevated">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            Weight Trend
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <SimpleLineChart data={weightChartData} color="#ef4444" valueLabel="kg" />
+        </CardContent>
+      </Card>
+
+      <Card className="card-elevated">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Camera className="h-5 w-5 text-primary" />
+            Progress Photos
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handlePhoto}
+          />
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => fileRef.current?.click()}
+          >
+            <ImageIcon className="mr-2 h-4 w-4" />
+            Add Photo
+          </Button>
+
+          {photos.length > 0 && (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {photos.slice().reverse().map((photo) => (
+                <div key={photo.id} className="relative overflow-hidden rounded-lg border border-border">
+                  <img
+                    src={photo.dataUrl}
+                    alt={`Progress photo from ${photo.date}`}
+                    className="aspect-square w-full object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-2 py-1 text-xs text-white">
+                    {photo.date}
+                  </div>
+                  <button
+                    onClick={() => removePhoto(photo.id)}
+                    className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white hover:bg-black/80"
+                    aria-label="Remove photo"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {measurements.length > 0 && (
         <Card className="card-elevated">
           <CardHeader className="pb-2">
