@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useUserSettings, useWorkouts } from "@/hooks/use-app-data";
+import { CardioTimer } from "@/components/cardio-timer";
 import {
   getWorkoutTypeForDay,
   getExercisesForDay,
