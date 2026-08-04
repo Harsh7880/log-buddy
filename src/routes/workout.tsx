@@ -188,6 +188,17 @@ function WorkoutLogger({
         </Button>
       </div>
 
+      <div className="grid gap-4 sm:grid-cols-2">
+        <CardioTimer mode="sprint" onComplete={(seconds) => setCardioMinutes((m) => m + Math.round(seconds / 60))} />
+        <CardioTimer mode="liss" onComplete={(seconds) => setCardioMinutes((m) => m + Math.round(seconds / 60))} />
+      </div>
+
+      {cardioMinutes > 0 && (
+        <div className="text-center text-sm text-muted-foreground">
+          Cardio logged: <span className="font-semibold text-foreground">{cardioMinutes} min</span>
+        </div>
+      )}
+
       <div className="space-y-4">
         {exerciseState.map((ex, exIndex) => (
           <Card key={ex.exerciseId} className={`card-elevated ${ex.completed ? "border-primary/30" : ""}`}>
