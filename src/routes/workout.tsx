@@ -106,10 +106,10 @@ function WorkoutLogger({
   onComplete,
 }: {
   dayNumber: number;
-  type: string;
+  type: WorkoutType;
   exercises: { id: string; name: string; muscleGroup: string; defaultEquipment?: string }[];
-  existing?: { id: string; exercises: LoggedExercise[]; durationMinutes: number; completed: boolean };
-  onComplete: (session: { id: string; date: string; dayNumber: number; type: string; exercises: LoggedExercise[]; durationMinutes: number; completed: boolean }) => void;
+  existing?: WorkoutSession;
+  onComplete: (session: WorkoutSession) => void;
 }) {
   const [exerciseState, setExerciseState] = useState<LoggedExercise[]>(() => {
     if (existing?.exercises?.length) return existing.exercises;
