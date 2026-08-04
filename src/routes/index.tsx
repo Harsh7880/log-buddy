@@ -236,7 +236,7 @@ function DashboardPage() {
               <p className="text-sm text-muted-foreground">Cardio</p>
               <p className="text-2xl font-bold flex items-center gap-1">
                 <Timer className="h-4 w-4 text-primary" />
-                0m
+                {todayWorkout?.cardioMinutes ?? 0}m
               </p>
             </div>
             <Button variant="ghost" size="icon" asChild>
