@@ -24,11 +24,73 @@ function HistoryPage() {
   const [workouts] = useWorkouts();
   const sorted = [...workouts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text("100 Day Bollywood Body Tracker", 14, 20);
+    doc.setFontSize(12);
+    doc.text("Workout History", 14, 30);
+
+    let y = 40;
+    sorted.forEach((w) => {
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.setFontSize(11);
+      doc.text(`${w.date} - Day ${w.dayNumber} - ${w.type}`, 14, y);
+      y += 6;
+      doc.setFontSize(9);
+      w.exercises.forEach((ex) => {
+        const sets = ex.sets.map((s) => `${s.weight}kg x ${s.reps}`).join(", ");
+        doc.text(`  ${ex.name}: ${sets}`, 16, y);
+        y += 5;
+      });
+      y += 4;
+    });
+    doc.save("bollywood-body-workouts.pdf");
+  };
+
+  const exportExcel = () => {
+    const rows = sorted.flatMap((w) =>
+      w.exercises.flatMap((ex) =>
+        ex.sets.map((s, i) => ({
+          Date: w.date,
+          Day: w.dayNumber,
+          Workout: w.type,
+          Exercise: ex.name,
+          Equipment: ex.equipment,
+          Set: i + 1,
+          Weight: s.weight,
+          Reps: s.reps,
+          RPE: ex.rpe,
+          PR: ex.pr ? "Yes" : "No",
+        }))
+      )
+    );
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Workouts");
+    XLSX.writeFile(wb, "bollywood-body-workouts.xlsx");
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h2 className="text-2xl font-bold">Workout History</h2>
-        <p className="text-muted-foreground">{sorted.length} logged sessions</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Workout History</h2>
+          <p className="text-muted-foreground">{sorted.length} logged sessions</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={exportPDF} disabled={sorted.length === 0}>
+            <FileDown className="mr-2 h-4 w-4" />
+            PDF
+          </Button>
+          <Button variant="outline" size="sm" onClick={exportExcel} disabled={sorted.length === 0}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Excel
+          </Button>
+        </div>
       </div>
 
       {sorted.length === 0 ? (
