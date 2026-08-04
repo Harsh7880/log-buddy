@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Ruler, TrendingUp } from "lucide-react";
+import { useState, useRef } from "react";
+import { Ruler, TrendingUp, Camera, ImageIcon, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useMeasurements, useUserSettings } from "@/hooks/use-app-data";
+import { useMeasurements, useUserSettings, useProgressPhotos } from "@/hooks/use-app-data";
 import { formatDate } from "@/lib/workout-data";
+import { SimpleLineChart } from "@/components/charts/simple-line-chart";
 
 export const Route = createFileRoute("/measurements")({
   head: () => ({
