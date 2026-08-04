@@ -108,7 +108,7 @@ function WorkoutLogger({
   dayNumber: number;
   type: WorkoutType;
   exercises: { id: string; name: string; muscleGroup: string; defaultEquipment?: string }[];
-  existing?: WorkoutSession;
+  existing?: WorkoutSession | undefined;
   onComplete: (session: WorkoutSession) => void;
 }) {
   const [exerciseState, setExerciseState] = useState<LoggedExercise[]>(() => {
