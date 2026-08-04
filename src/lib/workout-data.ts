@@ -145,8 +145,8 @@ export const WORKOUT_EXERCISES: Record<Exclude<WorkoutType, "Rest">, string[]> =
 };
 
 export function getWorkoutTypeForDay(dayNumber: number): WorkoutType {
-  const index = (dayNumber - 1) % WORKOUT_SPLIT.length;
-  return WORKOUT_SPLIT[index];
+  const index = ((dayNumber - 1) % WORKOUT_SPLIT.length + WORKOUT_SPLIT.length) % WORKOUT_SPLIT.length;
+  return WORKOUT_SPLIT[index]!;
 }
 
 export function getExercisesForDay(dayNumber: number): Exercise[] {
@@ -161,5 +161,5 @@ export function generateId(): string {
 }
 
 export function formatDate(date: Date): string {
-  return date.toISOString().split("T")[0];
+  return date.toISOString().split("T")[0]!;
 }
