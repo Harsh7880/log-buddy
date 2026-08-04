@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CalendarDays, Dumbbell } from "lucide-react";
+import { CalendarDays, Dumbbell, FileDown, FileSpreadsheet } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useWorkouts } from "@/hooks/use-app-data";
+import { jsPDF } from "jspdf";
+import * as XLSX from "xlsx";
 
 export const Route = createFileRoute("/history")({
   head: () => ({
