@@ -26,6 +26,8 @@ export const Route = createFileRoute("/measurements")({
 function MeasurementsPage() {
   const [measurements, setMeasurements] = useMeasurements();
   const [settings, setSettings] = useUserSettings();
+  const [photos, setPhotos] = useProgressPhotos();
+  const fileRef = useRef<HTMLInputElement>(null);
   const today = formatDate(new Date());
   const latest = measurements[measurements.length - 1];
 
@@ -46,6 +48,28 @@ function MeasurementsPage() {
   const update = (field: keyof typeof values, value: number) => {
     setValues((prev) => ({ ...prev, [field]: value }));
   };
+
+  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPhotos((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), date: today, dataUrl: reader.result as string },
+      ]);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removePhoto = (id: string) => {
+    setPhotos((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const weightChartData = measurements
+    .slice()
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .map((m) => ({ label: m.date.slice(5), value: m.weight }));
 
   return (
     <div className="space-y-6 animate-fade-in">
