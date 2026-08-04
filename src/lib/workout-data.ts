@@ -40,6 +40,7 @@ export interface WorkoutSession {
   type: WorkoutType;
   exercises: LoggedExercise[];
   durationMinutes: number;
+  cardioMinutes: number;
   completed: boolean;
 }
 
