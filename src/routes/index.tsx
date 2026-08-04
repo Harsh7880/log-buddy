@@ -178,6 +178,32 @@ function DashboardPage() {
       </Card>
 
       <div className="grid gap-4 sm:grid-cols-2">
+        <Card className="card-elevated">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Weight className="h-5 w-5 text-primary" />
+              Body Weight
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SimpleLineChart data={weightChartData} color="#ef4444" valueLabel="kg" />
+          </CardContent>
+        </Card>
+
+        <Card className="card-elevated">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Activity className="h-5 w-5 text-primary" />
+              Workout Volume
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SimpleLineChart data={volumeChartData} color="#22c55e" valueLabel="kg" />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
         <Card className="card-elevated hover-lift">
           <CardContent className="flex items-center justify-between p-5">
             <div>
