@@ -14,6 +14,8 @@ import {
   formatDate,
   type LoggedExercise,
   type ExerciseSet,
+  type WorkoutType,
+  type WorkoutSession,
 } from "@/lib/workout-data";
 
 export const Route = createFileRoute("/workout")({
