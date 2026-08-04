@@ -176,6 +176,7 @@ function WorkoutLogger({
               type,
               exercises: exerciseState,
               durationMinutes: existing?.durationMinutes || 0,
+              cardioMinutes,
               completed: allCompleted,
             })
           }
