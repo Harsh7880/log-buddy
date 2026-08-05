@@ -72,10 +72,10 @@ export interface ProgressPhoto {
 
 export interface UserSettings {
   startDate: string;
-  currentPhase: number;
-  currentDay: number;
   unitSystem: "metric" | "imperial";
   bodyWeight: number;
+  /** Rest days the user has acknowledged as done. */
+  completedRestDays: number[];
 }
 
 export const WORKOUT_SPLIT: WorkoutType[] = [
