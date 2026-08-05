@@ -12,11 +12,10 @@ import {
   Weight,
 } from "lucide-react";
 import { ProgressRing } from "@/components/progress-ring";
-import { useUserSettings, useWorkouts, useNutrition, useMeasurements } from "@/hooks/use-app-data";
+import { useUserSettings, useWorkouts, useNutrition, useMeasurements, useProgram } from "@/hooks/use-app-data";
 import {
   getWorkoutTypeForDay,
   getExercisesForDay,
-  WORKOUT_SPLIT,
   formatDate,
 } from "@/lib/workout-data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -169,9 +168,9 @@ function DashboardPage() {
         <CardContent>
           <div className="flex justify-between gap-2">
             {weeklyCompletion.map((done, i) => {
-              const day = settings.currentDay - 6 + i;
+              const day = currentDay - 6 + i;
               const label = ["M", "T", "W", "T", "F", "S", "S"][i];
-              const type = day >= 36 ? getWorkoutTypeForDay(day) : null;
+              const type = day >= 1 ? getWorkoutTypeForDay(day) : null;
               const rest = type === "Rest";
               return (
                 <div key={i} className="flex flex-1 flex-col items-center gap-2">
@@ -185,7 +184,7 @@ function DashboardPage() {
                           : "border border-border bg-card text-muted-foreground"
                     }`}
                   >
-                    {day >= 36 ? day : "—"}
+                    {day >= 1 ? day : "—"}
                   </div>
                 </div>
               );
@@ -268,11 +267,11 @@ function DashboardPage() {
             <div>
               <p className="text-sm text-muted-foreground">Next Workout</p>
               <p className="text-lg font-bold">
-                {WORKOUT_SPLIT[(settings.currentDay) % WORKOUT_SPLIT.length]}
+                {getWorkoutTypeForDay(currentDay + 1)}
               </p>
             </div>
             <Button variant="ghost" size="icon" asChild>
-              <Link to="/workout">
+              <Link to="/program">
                 <ChevronRight className="h-5 w-5" />
               </Link>
             </Button>
