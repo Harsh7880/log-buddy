@@ -39,27 +39,26 @@ export const Route = createFileRoute("/")({
 
 function DashboardPage() {
   const [settings] = useUserSettings();
+  const { currentDay, phase, phaseProgress, dayInPhase, phaseLength, remainingDays, completedDays } =
+    useProgram();
   const [workouts] = useWorkouts();
   const [nutrition] = useNutrition();
   const [measurements] = useMeasurements();
 
   const today = formatDate(new Date());
-  const todayWorkout = workouts.find((w) => w.date === today);
+  const todayWorkout = workouts.find((w) => w.dayNumber === currentDay);
   const todayNutrition = nutrition.find((n) => n.date === today);
 
-  const currentType = getWorkoutTypeForDay(settings.currentDay);
-  const todayExercises = getExercisesForDay(settings.currentDay);
-  const progress = (settings.currentDay - 36) / (63 - 36);
+  const currentType = getWorkoutTypeForDay(currentDay);
+  const todayExercises = getExercisesForDay(currentDay);
+  const progress = completedDays.size / 100;
 
-  const completedDays = new Set(workouts.filter((w) => w.completed).map((w) => w.dayNumber)).size;
   const streak = computeStreak(workouts);
 
   const weeklyCompletion = Array.from({ length: 7 }, (_, i) => {
-    const day = settings.currentDay - 6 + i;
-    if (day < 36) return false;
-    const type = getWorkoutTypeForDay(day);
-    if (type === "Rest") return true;
-    return workouts.some((w) => w.dayNumber === day && w.completed);
+    const day = currentDay - 6 + i;
+    if (day < 1) return false;
+    return completedDays.has(day);
   });
 
   const weightChartData = measurements
@@ -70,7 +69,7 @@ function DashboardPage() {
   const volumeChartData = workouts
     .filter((w) => w.completed)
     .slice()
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .sort((a, b) => a.dayNumber - b.dayNumber)
     .map((w) => ({
       label: `D${w.dayNumber}`,
       value: w.exercises.reduce((total, ex) => {
@@ -85,9 +84,12 @@ function DashboardPage() {
     <div className="space-y-6 animate-fade-in">
       <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Day {settings.currentDay}</h2>
+          <h2 className="text-2xl font-bold">Day {currentDay} of 100</h2>
           <p className="text-muted-foreground">
-            Phase {settings.currentPhase} · {currentType === "Rest" ? "Rest Day" : currentType}
+            Phase {phase.number}: {phase.name} · {currentType === "Rest" ? "Rest Day" : currentType}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Day {dayInPhase} of {phaseLength} in this phase · {phaseProgress.percent}% complete
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -97,11 +99,11 @@ function DashboardPage() {
               {settings.bodyWeight} <span className="text-sm font-normal text-muted-foreground">kg</span>
             </p>
           </div>
-          <ProgressRing progress={progress} label={`${settings.currentDay}`} sublabel="of 63" size={120} strokeWidth={10} />
+          <ProgressRing progress={progress} label={`${currentDay}`} sublabel="of 100" size={120} strokeWidth={10} />
         </div>
       </section>
 
-      {currentType !== "Rest" && (
+      {currentType !== "Rest" ? (
         <Card className="card-elevated hover-lift overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
@@ -116,7 +118,9 @@ function DashboardPage() {
                 <p className="text-sm text-muted-foreground">{todayExercises.length} exercises</p>
               </div>
               <Button asChild className="press-scale">
-                <Link to="/workout">{todayWorkout?.completed ? "View Log" : "Start Workout"}</Link>
+                <Link to="/workout" search={{ day: currentDay }}>
+                  {todayWorkout?.completed ? "View Log" : "Start Workout"}
+                </Link>
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -133,14 +137,27 @@ function DashboardPage() {
             </div>
           </CardContent>
         </Card>
+      ) : (
+        <Card className="card-elevated">
+          <CardContent className="flex items-center justify-between p-5">
+            <div>
+              <p className="text-lg font-semibold">Rest Day</p>
+              <p className="text-sm text-muted-foreground">Recover and come back stronger.</p>
+            </div>
+            <Button asChild variant="outline" className="press-scale">
+              <Link to="/workout" search={{ day: currentDay }}>Open Day</Link>
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <MetricCard icon={Flame} label="Streak" value={`${streak} days`} />
-        <MetricCard icon={TrendingUp} label="Completed" value={`${completedDays}`} />
+        <MetricCard icon={TrendingUp} label="Remaining" value={`${remainingDays} days`} />
         <MetricCard icon={Droplets} label="Water" value={`${todayNutrition?.water ?? 0} L`} />
         <MetricCard icon={Moon} label="Sleep" value={`${todayNutrition?.sleep ?? 0} h`} />
       </div>
+
 
       <Card className="card-elevated">
         <CardHeader className="pb-2">
