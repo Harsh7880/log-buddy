@@ -1,17 +1,18 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
-  Dumbbell,
+  ListChecks,
   History,
   Utensils,
   Ruler,
   User,
+  Dumbbell,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/workout", label: "Workout", icon: Dumbbell },
+  { to: "/program", label: "Program", icon: ListChecks },
   { to: "/history", label: "History", icon: History },
   { to: "/nutrition", label: "Nutrition", icon: Utensils },
   { to: "/measurements", label: "Body", icon: Ruler },

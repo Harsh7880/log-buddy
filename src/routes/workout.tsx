@@ -1,13 +1,14 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Dumbbell, Check, RotateCcw, Trophy } from "lucide-react";
+import { Dumbbell, Check, RotateCcw, Trophy, ArrowLeft, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useUserSettings, useWorkouts } from "@/hooks/use-app-data";
+import { useProgram, useWorkouts } from "@/hooks/use-app-data";
 import { CardioTimer } from "@/components/cardio-timer";
+import { getPhaseForDay, isDayUnlocked } from "@/lib/program";
 import {
   getWorkoutTypeForDay,
   getExercisesForDay,
@@ -20,6 +21,10 @@ import {
 } from "@/lib/workout-data";
 
 export const Route = createFileRoute("/workout")({
+  validateSearch: (search: Record<string, unknown>): { day?: number } => {
+    const raw = Number(search["day"]);
+    return Number.isFinite(raw) && raw >= 1 && raw <= 100 ? { day: Math.floor(raw) } : {};
+  },
   head: () => ({
     meta: [
       { title: "Workout — 100 Day Bollywood Body Tracker" },
@@ -34,34 +39,94 @@ export const Route = createFileRoute("/workout")({
 });
 
 function WorkoutPage() {
-  const [settings] = useUserSettings();
+  const { day: searchDay } = Route.useSearch();
+  const navigate = useNavigate();
+  const { currentDay, completedDays, markRestDayComplete } = useProgram();
   const [workouts, setWorkouts] = useWorkouts();
   const [active, setActive] = useState(false);
 
-  const type = getWorkoutTypeForDay(settings.currentDay);
-  const exercises = getExercisesForDay(settings.currentDay);
-  const today = formatDate(new Date());
-  const existing = workouts.find((w) => w.date === today && w.dayNumber === settings.currentDay);
+  const dayNumber = searchDay ?? currentDay;
+  const phase = getPhaseForDay(dayNumber);
+  const unlocked = isDayUnlocked(dayNumber, currentDay);
+
+  const type = getWorkoutTypeForDay(dayNumber);
+  const exercises = getExercisesForDay(dayNumber);
+  const existing = workouts.find((w) => w.dayNumber === dayNumber);
+
+  const header = (
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <Button variant="ghost" size="sm" asChild className="-ml-2">
+        <Link to="/program">
+          <ArrowLeft className="mr-1 h-4 w-4" />
+          Program
+        </Link>
+      </Button>
+      <span>
+        Phase {phase.number} · {phase.name}
+      </span>
+    </div>
+  );
+
+  if (!unlocked) {
+    return (
+      <div className="space-y-6 animate-fade-in text-center">
+        {header}
+        <Lock className="mx-auto h-10 w-10 text-muted-foreground" />
+        <h2 className="text-2xl font-bold">Day {dayNumber} is locked</h2>
+        <p className="text-muted-foreground">
+          Complete Day {currentDay} first to unlock the rest of the program.
+        </p>
+        <Button asChild>
+          <Link to="/workout" search={{ day: currentDay }}>
+            Go to Day {currentDay}
+          </Link>
+        </Button>
+      </div>
+    );
+  }
 
   if (type === "Rest") {
+    const done = completedDays.has(dayNumber);
     return (
-      <div className="space-y-6 text-center">
-        <h2 className="text-2xl font-bold">Rest Day</h2>
-        <p className="text-muted-foreground">Recover today. Come back tomorrow for {getWorkoutTypeForDay(settings.currentDay + 1)}.</p>
-        <Button asChild>
-          <Link to="/">Back to Dashboard</Link>
-        </Button>
+      <div className="space-y-6 animate-fade-in">
+        {header}
+        <div className="space-y-4 text-center">
+          <h2 className="text-2xl font-bold">Day {dayNumber} — Rest Day</h2>
+          <p className="text-muted-foreground">
+            Recover today. Next up: {getWorkoutTypeForDay(dayNumber + 1)} on Day {dayNumber + 1}.
+          </p>
+          {done ? (
+            <p className="font-semibold text-primary">Rest day completed</p>
+          ) : (
+            <Button
+              className="press-scale"
+              onClick={() => {
+                markRestDayComplete(dayNumber);
+                navigate({ to: "/program" });
+              }}
+            >
+              <Check className="mr-2 h-4 w-4" />
+              Mark Rest Day Complete
+            </Button>
+          )}
+          <div>
+            <Button variant="outline" asChild>
+              <Link to="/program">Back to Program</Link>
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!active && !existing) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 animate-fade-in">
+        {header}
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold">{type}</h2>
-            <p className="text-muted-foreground">Day {settings.currentDay} · {exercises.length} exercises</p>
+            <p className="text-muted-foreground">Day {dayNumber} · {exercises.length} exercises</p>
           </div>
           <Button onClick={() => setActive(true)} className="press-scale">
             <Dumbbell className="mr-2 h-4 w-4" />
@@ -83,19 +148,23 @@ function WorkoutPage() {
   }
 
   return (
-    <WorkoutLogger
-      dayNumber={settings.currentDay}
-      type={type}
-      exercises={exercises}
-      existing={existing}
-      onComplete={(session) => {
-        setWorkouts((prev) => {
-          const filtered = prev.filter((w) => w.id !== session.id);
-          return [...filtered, session];
-        });
-        setActive(false);
-      }}
-    />
+    <div className="space-y-4">
+      {header}
+      <WorkoutLogger
+        dayNumber={dayNumber}
+        type={type}
+        exercises={exercises}
+        existing={existing}
+        onComplete={(session) => {
+          setWorkouts((prev) => {
+            const filtered = prev.filter((w) => w.id !== session.id && w.dayNumber !== session.dayNumber);
+            return [...filtered, session];
+          });
+          setActive(false);
+          if (session.completed) navigate({ to: "/program" });
+        }}
+      />
+    </div>
   );
 }
 

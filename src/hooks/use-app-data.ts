@@ -6,17 +6,29 @@ import type {
   ProgressPhoto,
   UserSettings,
 } from "@/lib/workout-data";
+import {
+  getCompletedDays,
+  getCurrentDay,
+  getPhaseForDay,
+  getPhaseCompletion,
+  PROGRAM_LENGTH,
+} from "@/lib/program";
 
 const defaultSettings: UserSettings = {
   startDate: new Date().toISOString().split("T")[0]!,
-  currentPhase: 2,
-  currentDay: 36,
   unitSystem: "metric",
   bodyWeight: 75,
+  completedRestDays: [],
 };
 
 export function useUserSettings() {
-  return useLocalStorage<UserSettings>("bbb-settings", defaultSettings);
+  const [settings, setSettings] = useLocalStorage<UserSettings>("bbb-settings", defaultSettings);
+  const normalized: UserSettings = {
+    ...defaultSettings,
+    ...settings,
+    completedRestDays: settings.completedRestDays ?? [],
+  };
+  return [normalized, setSettings] as const;
 }
 
 export function useWorkouts() {
@@ -33,4 +45,40 @@ export function useMeasurements() {
 
 export function useProgressPhotos() {
   return useLocalStorage<ProgressPhoto[]>("bbb-photos", []);
+}
+
+/** Derived program progress — no manual day/phase selection. */
+export function useProgram() {
+  const [settings, setSettings] = useUserSettings();
+  const [workouts] = useWorkouts();
+
+  const completedDays = getCompletedDays(workouts, settings.completedRestDays);
+  const currentDay = getCurrentDay(completedDays);
+  const phase = getPhaseForDay(currentDay);
+  const phaseProgress = getPhaseCompletion(phase, completedDays);
+  const dayInPhase = currentDay - phase.startDay + 1;
+  const phaseLength = phase.endDay - phase.startDay + 1;
+  const remainingDays = PROGRAM_LENGTH - completedDays.size;
+
+  const markRestDayComplete = (day: number) => {
+    setSettings((prev) => {
+      const rest = prev.completedRestDays ?? [];
+      if (rest.includes(day)) return prev;
+      return { ...prev, completedRestDays: [...rest, day] };
+    });
+  };
+
+  return {
+    settings,
+    setSettings,
+    workouts,
+    completedDays,
+    currentDay,
+    phase,
+    phaseProgress,
+    dayInPhase,
+    phaseLength,
+    remainingDays,
+    markRestDayComplete,
+  };
 }
