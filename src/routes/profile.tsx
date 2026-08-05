@@ -11,7 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useUserSettings, useWorkouts, useNutrition, useMeasurements, useProgressPhotos } from "@/hooks/use-app-data";
+import {
+  useUserSettings,
+  useWorkouts,
+  useNutrition,
+  useMeasurements,
+  useProgressPhotos,
+  useProgram,
+} from "@/hooks/use-app-data";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -29,17 +36,19 @@ export const Route = createFileRoute("/profile")({
 
 function ProfilePage() {
   const [settings, setSettings] = useUserSettings();
+  const { currentDay, phase } = useProgram();
   const [, setWorkouts] = useWorkouts();
   const [, setNutrition] = useNutrition();
   const [, setMeasurements] = useMeasurements();
   const [, setPhotos] = useProgressPhotos();
 
   const clearAllData = () => {
-    if (confirm("Are you sure you want to delete all app data? This cannot be undone.")) {
+    if (confirm("Are you sure you want to reset the program and delete all app data? This cannot be undone.")) {
       setWorkouts([]);
       setNutrition([]);
       setMeasurements([]);
       setPhotos([]);
+      setSettings((prev) => ({ ...prev, completedRestDays: [] }));
     }
   };
 
@@ -51,7 +60,9 @@ function ProfilePage() {
         </div>
         <div>
           <h2 className="text-2xl font-bold">Profile</h2>
-          <p className="text-muted-foreground">Day {settings.currentDay} of 63</p>
+          <p className="text-muted-foreground">
+            Day {currentDay} of 100 · Phase {phase.number}: {phase.name}
+          </p>
         </div>
       </div>
 
@@ -64,23 +75,11 @@ function ProfilePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label className="text-sm text-muted-foreground">Current Day</Label>
+            <Label className="text-sm text-muted-foreground">Body Weight (kg)</Label>
             <Input
               type="number"
-              min={36}
-              max={63}
-              value={settings.currentDay}
-              onChange={(e) => setSettings((prev) => ({ ...prev, currentDay: Number(e.target.value) }))}
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <Label className="text-sm text-muted-foreground">Phase</Label>
-            <Input
-              type="number"
-              min={1}
-              value={settings.currentPhase}
-              onChange={(e) => setSettings((prev) => ({ ...prev, currentPhase: Number(e.target.value) }))}
+              value={settings.bodyWeight}
+              onChange={(e) => setSettings((prev) => ({ ...prev, bodyWeight: Number(e.target.value) }))}
               className="mt-1"
             />
           </div>
@@ -99,6 +98,9 @@ function ProfilePage() {
               </SelectContent>
             </Select>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Your current day and phase advance automatically as you complete workouts.
+          </p>
         </CardContent>
       </Card>
 
@@ -111,7 +113,7 @@ function ProfilePage() {
         </CardHeader>
         <CardContent>
           <Button variant="destructive" onClick={clearAllData} className="w-full">
-            Clear All Data
+            Reset Program & Clear All Data
           </Button>
         </CardContent>
       </Card>
