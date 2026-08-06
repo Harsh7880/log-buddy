@@ -42,7 +42,7 @@ function WorkoutPage() {
   const { day: searchDay } = Route.useSearch();
   const navigate = useNavigate();
   const { currentDay, completedDays, markRestDayComplete } = useProgram();
-  const [workouts, setWorkouts] = useWorkouts();
+  const [workouts, setWorkouts, hydrated] = useWorkouts();
   const [active, setActive] = useState(false);
 
   const dayNumber = searchDay ?? currentDay;
