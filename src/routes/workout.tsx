@@ -160,10 +160,17 @@ function WorkoutPage() {
     <div className="space-y-4">
       {header}
       <WorkoutLogger
+        key={dayNumber}
         dayNumber={dayNumber}
         type={type}
         exercises={exercises}
         existing={existing}
+        onSave={(session) => {
+          setWorkouts((prev) => {
+            const filtered = prev.filter((w) => w.id !== session.id && w.dayNumber !== session.dayNumber);
+            return [...filtered, session];
+          });
+        }}
         onComplete={(session) => {
           setWorkouts((prev) => {
             const filtered = prev.filter((w) => w.id !== session.id && w.dayNumber !== session.dayNumber);
