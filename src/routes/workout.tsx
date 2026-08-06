@@ -190,13 +190,16 @@ function WorkoutLogger({
   exercises,
   existing,
   onComplete,
+  onSave,
 }: {
   dayNumber: number;
   type: WorkoutType;
   exercises: { id: string; name: string; muscleGroup: string; defaultEquipment?: string }[];
   existing?: WorkoutSession | undefined;
   onComplete: (session: WorkoutSession) => void;
+  onSave: (session: WorkoutSession) => void;
 }) {
+  const [sessionId] = useState(() => existing?.id || generateId());
   const [exerciseState, setExerciseState] = useState<LoggedExercise[]>(() => {
     if (existing?.exercises?.length) return existing.exercises;
     return exercises.map((ex) => ({
@@ -214,6 +217,29 @@ function WorkoutLogger({
   const [cardioMinutes, setCardioMinutes] = useState(existing?.cardioMinutes || 0);
 
   const allCompleted = exerciseState.every((e) => e.completed);
+
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    const t = setTimeout(() => {
+      onSave({
+        id: sessionId,
+        date: existing?.date || formatDate(new Date()),
+        dayNumber,
+        type,
+        exercises: exerciseState,
+        durationMinutes: existing?.durationMinutes || 0,
+        cardioMinutes,
+        completed: existing?.completed ?? false,
+      });
+    }, 600);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exerciseState, cardioMinutes]);
+
 
   const updateSet = (exIndex: number, setIndex: number, field: keyof ExerciseSet, value: number) => {
     setExerciseState((prev) => {
