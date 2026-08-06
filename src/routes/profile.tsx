@@ -19,6 +19,7 @@ import {
   useProgressPhotos,
   useProgram,
 } from "@/hooks/use-app-data";
+import { PHASES } from "@/lib/program";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -36,7 +37,7 @@ export const Route = createFileRoute("/profile")({
 
 function ProfilePage() {
   const [settings, setSettings] = useUserSettings();
-  const { currentDay, phase } = useProgram();
+  const { currentDay, phase, setPhaseStartDate } = useProgram();
   const [, setWorkouts] = useWorkouts();
   const [, setNutrition] = useNutrition();
   const [, setMeasurements] = useMeasurements();
@@ -98,9 +99,27 @@ function ProfilePage() {
               </SelectContent>
             </Select>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Your current day and phase advance automatically as you complete workouts.
-          </p>
+          <div className="space-y-3 border-t border-border pt-4">
+            <div>
+              <p className="text-sm font-semibold">Phase Start Dates</p>
+              <p className="text-xs text-muted-foreground">
+                Set when a phase began. Your overall day, current phase and today&apos;s workout are
+                calculated from these dates. Changing them never deletes logged workouts.
+              </p>
+            </div>
+            {PHASES.map((p) => (
+              <div key={p.number} className="flex items-center gap-3">
+                <Label className="w-40 shrink-0 text-sm text-muted-foreground">
+                  Phase {p.number} — {p.name}
+                </Label>
+                <Input
+                  type="date"
+                  value={settings.phaseStartDates[String(p.number)] ?? ""}
+                  onChange={(e) => setPhaseStartDate(p.number, e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
