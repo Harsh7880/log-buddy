@@ -96,5 +96,6 @@ export function useProgram() {
     phaseLength,
     remainingDays,
     markRestDayComplete,
+    setPhaseStartDate,
   };
 }
