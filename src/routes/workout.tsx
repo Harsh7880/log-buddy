@@ -249,11 +249,10 @@ function WorkoutLogger({
               completed: allCompleted,
             })
           }
-          disabled={!allCompleted}
           className="press-scale"
         >
           <Check className="mr-2 h-4 w-4" />
-          Finish
+          {allCompleted ? "Finish" : "Save Workout"}
         </Button>
       </div>
 

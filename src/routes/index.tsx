@@ -83,6 +83,14 @@ function DashboardPage() {
     <div className="space-y-6 animate-fade-in">
       <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
+          <p className="text-xs uppercase tracking-wider text-primary">
+            {new Date().toLocaleDateString(undefined, {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </p>
           <h2 className="text-2xl font-bold">Day {currentDay} of 100</h2>
           <p className="text-muted-foreground">
             Phase {phase.number}: {phase.name} · {currentType === "Rest" ? "Rest Day" : currentType}
