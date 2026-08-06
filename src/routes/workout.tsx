@@ -67,6 +67,15 @@ function WorkoutPage() {
     </div>
   );
 
+  if (!hydrated) {
+    return (
+      <div className="space-y-4">
+        {header}
+        <p className="text-sm text-muted-foreground">Loading your saved log…</p>
+      </div>
+    );
+  }
+
   if (!unlocked) {
     return (
       <div className="space-y-6 animate-fade-in text-center">
