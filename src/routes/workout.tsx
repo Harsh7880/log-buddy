@@ -281,8 +281,8 @@ function WorkoutLogger({
         <Button
           onClick={() =>
             onComplete({
-              id: existing?.id || generateId(),
-              date: formatDate(new Date()),
+              id: sessionId,
+              date: existing?.date || formatDate(new Date()),
               dayNumber,
               type,
               exercises: exerciseState,
