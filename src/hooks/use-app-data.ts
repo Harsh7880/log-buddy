@@ -9,8 +9,11 @@ import type {
 import {
   getCompletedDays,
   getCurrentDay,
+  getCurrentDayFromDates,
+  getImplicitCompletedDays,
   getPhaseForDay,
   getPhaseCompletion,
+  DEFAULT_PHASE_START_DATES,
   PROGRAM_LENGTH,
 } from "@/lib/program";
 
@@ -19,6 +22,7 @@ const defaultSettings: UserSettings = {
   unitSystem: "metric",
   bodyWeight: 75,
   completedRestDays: [],
+  phaseStartDates: DEFAULT_PHASE_START_DATES,
 };
 
 export function useUserSettings() {
@@ -27,6 +31,7 @@ export function useUserSettings() {
     ...defaultSettings,
     ...settings,
     completedRestDays: settings.completedRestDays ?? [],
+    phaseStartDates: { ...DEFAULT_PHASE_START_DATES, ...(settings.phaseStartDates ?? {}) },
   };
   return [normalized, setSettings] as const;
 }
@@ -52,13 +57,16 @@ export function useProgram() {
   const [settings, setSettings] = useUserSettings();
   const [workouts] = useWorkouts();
 
-  const completedDays = getCompletedDays(workouts, settings.completedRestDays);
-  const currentDay = getCurrentDay(completedDays);
+  const implicit = getImplicitCompletedDays(settings.phaseStartDates);
+  const logged = getCompletedDays(workouts, settings.completedRestDays);
+  const completedDays = new Set<number>([...implicit, ...logged]);
+  const dateDay = getCurrentDayFromDates(settings.phaseStartDates);
+  const currentDay = dateDay ?? getCurrentDay(completedDays);
   const phase = getPhaseForDay(currentDay);
   const phaseProgress = getPhaseCompletion(phase, completedDays);
   const dayInPhase = currentDay - phase.startDay + 1;
   const phaseLength = phase.endDay - phase.startDay + 1;
-  const remainingDays = PROGRAM_LENGTH - completedDays.size;
+  const remainingDays = Math.max(0, PROGRAM_LENGTH - currentDay + 1);
 
   const markRestDayComplete = (day: number) => {
     setSettings((prev) => {
@@ -67,6 +75,14 @@ export function useProgram() {
       return { ...prev, completedRestDays: [...rest, day] };
     });
   };
+
+  const setPhaseStartDate = (phaseNumber: number, isoDate: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      phaseStartDates: { ...(prev.phaseStartDates ?? {}), [String(phaseNumber)]: isoDate },
+    }));
+  };
+
 
   return {
     settings,
@@ -80,5 +96,6 @@ export function useProgram() {
     phaseLength,
     remainingDays,
     markRestDayComplete,
+    setPhaseStartDate,
   };
 }

@@ -74,3 +74,69 @@ export function getPhaseCompletion(
 export function isDayUnlocked(day: number, currentDay: number): boolean {
   return day <= currentDay;
 }
+
+/* ---------- Date-driven program timeline ---------- */
+
+/** Phase number -> ISO start date (YYYY-MM-DD). */
+export type PhaseStartDates = Record<string, string>;
+
+export const DEFAULT_PHASE_START_DATES: PhaseStartDates = {
+  "3": "2026-08-03",
+};
+
+export function parseISODate(iso: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y!, (m ?? 1) - 1, d ?? 1);
+}
+
+export function toISODate(date: Date): string {
+  const y = date.getFullYear();
+  const m = `${date.getMonth() + 1}`.padStart(2, "0");
+  const d = `${date.getDate()}`.padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+export function daysBetween(from: Date, to: Date): number {
+  const a = new Date(from.getFullYear(), from.getMonth(), from.getDate()).getTime();
+  const b = new Date(to.getFullYear(), to.getMonth(), to.getDate()).getTime();
+  return Math.round((b - a) / 86400000);
+}
+
+/** The latest phase whose start date has already arrived. */
+export function getActivePhaseStart(
+  dates: PhaseStartDates,
+  today: Date = new Date(),
+): { phase: Phase; start: Date } | null {
+  let best: { phase: Phase; start: Date } | null = null;
+  for (const phase of PHASES) {
+    const iso = dates[String(phase.number)];
+    if (!iso) continue;
+    const start = parseISODate(iso);
+    if (daysBetween(start, today) < 0) continue;
+    if (!best || start.getTime() >= best.start.getTime()) best = { phase, start };
+  }
+  return best;
+}
+
+/** Overall program day derived from the configured phase start dates. */
+export function getCurrentDayFromDates(
+  dates: PhaseStartDates,
+  today: Date = new Date(),
+): number | null {
+  const active = getActivePhaseStart(dates, today);
+  if (!active) return null;
+  const day = active.phase.startDay + daysBetween(active.start, today);
+  return Math.min(PROGRAM_LENGTH, Math.max(1, day));
+}
+
+/** Days before the active phase are historical and count as complete. */
+export function getImplicitCompletedDays(
+  dates: PhaseStartDates,
+  today: Date = new Date(),
+): Set<number> {
+  const set = new Set<number>();
+  const active = getActivePhaseStart(dates, today);
+  if (!active) return set;
+  for (let d = 1; d < active.phase.startDay; d++) set.add(d);
+  return set;
+}

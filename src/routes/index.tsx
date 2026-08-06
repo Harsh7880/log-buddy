@@ -169,7 +169,9 @@ function DashboardPage() {
           <div className="flex justify-between gap-2">
             {weeklyCompletion.map((done, i) => {
               const day = currentDay - 6 + i;
-              const label = ["M", "T", "W", "T", "F", "S", "S"][i];
+              const d = new Date();
+              d.setDate(d.getDate() - (6 - i));
+              const label = ["S", "M", "T", "W", "T", "F", "S"][d.getDay()];
               const type = day >= 1 ? getWorkoutTypeForDay(day) : null;
               const rest = type === "Rest";
               return (
