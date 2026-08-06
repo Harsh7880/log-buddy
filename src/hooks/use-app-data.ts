@@ -9,8 +9,11 @@ import type {
 import {
   getCompletedDays,
   getCurrentDay,
+  getCurrentDayFromDates,
+  getImplicitCompletedDays,
   getPhaseForDay,
   getPhaseCompletion,
+  DEFAULT_PHASE_START_DATES,
   PROGRAM_LENGTH,
 } from "@/lib/program";
 
@@ -19,6 +22,7 @@ const defaultSettings: UserSettings = {
   unitSystem: "metric",
   bodyWeight: 75,
   completedRestDays: [],
+  phaseStartDates: DEFAULT_PHASE_START_DATES,
 };
 
 export function useUserSettings() {
@@ -27,6 +31,7 @@ export function useUserSettings() {
     ...defaultSettings,
     ...settings,
     completedRestDays: settings.completedRestDays ?? [],
+    phaseStartDates: { ...DEFAULT_PHASE_START_DATES, ...(settings.phaseStartDates ?? {}) },
   };
   return [normalized, setSettings] as const;
 }
