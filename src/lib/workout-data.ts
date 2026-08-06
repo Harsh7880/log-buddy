@@ -76,6 +76,8 @@ export interface UserSettings {
   bodyWeight: number;
   /** Rest days the user has acknowledged as done. */
   completedRestDays: number[];
+  /** Phase number -> ISO start date (YYYY-MM-DD). Manually adjustable. */
+  phaseStartDates: Record<string, string>;
 }
 
 export const WORKOUT_SPLIT: WorkoutType[] = [
