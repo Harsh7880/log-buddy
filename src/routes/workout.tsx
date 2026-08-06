@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dumbbell, Check, RotateCcw, Trophy, ArrowLeft, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,7 +42,7 @@ function WorkoutPage() {
   const { day: searchDay } = Route.useSearch();
   const navigate = useNavigate();
   const { currentDay, completedDays, markRestDayComplete } = useProgram();
-  const [workouts, setWorkouts] = useWorkouts();
+  const [workouts, setWorkouts, hydrated] = useWorkouts();
   const [active, setActive] = useState(false);
 
   const dayNumber = searchDay ?? currentDay;
@@ -66,6 +66,15 @@ function WorkoutPage() {
       </span>
     </div>
   );
+
+  if (!hydrated) {
+    return (
+      <div className="space-y-4">
+        {header}
+        <p className="text-sm text-muted-foreground">Loading your saved log…</p>
+      </div>
+    );
+  }
 
   if (!unlocked) {
     return (
@@ -151,10 +160,17 @@ function WorkoutPage() {
     <div className="space-y-4">
       {header}
       <WorkoutLogger
+        key={dayNumber}
         dayNumber={dayNumber}
         type={type}
         exercises={exercises}
         existing={existing}
+        onSave={(session) => {
+          setWorkouts((prev) => {
+            const filtered = prev.filter((w) => w.id !== session.id && w.dayNumber !== session.dayNumber);
+            return [...filtered, session];
+          });
+        }}
         onComplete={(session) => {
           setWorkouts((prev) => {
             const filtered = prev.filter((w) => w.id !== session.id && w.dayNumber !== session.dayNumber);
@@ -174,13 +190,16 @@ function WorkoutLogger({
   exercises,
   existing,
   onComplete,
+  onSave,
 }: {
   dayNumber: number;
   type: WorkoutType;
   exercises: { id: string; name: string; muscleGroup: string; defaultEquipment?: string }[];
   existing?: WorkoutSession | undefined;
   onComplete: (session: WorkoutSession) => void;
+  onSave: (session: WorkoutSession) => void;
 }) {
+  const [sessionId] = useState(() => existing?.id || generateId());
   const [exerciseState, setExerciseState] = useState<LoggedExercise[]>(() => {
     if (existing?.exercises?.length) return existing.exercises;
     return exercises.map((ex) => ({
@@ -198,6 +217,29 @@ function WorkoutLogger({
   const [cardioMinutes, setCardioMinutes] = useState(existing?.cardioMinutes || 0);
 
   const allCompleted = exerciseState.every((e) => e.completed);
+
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    const t = setTimeout(() => {
+      onSave({
+        id: sessionId,
+        date: existing?.date || formatDate(new Date()),
+        dayNumber,
+        type,
+        exercises: exerciseState,
+        durationMinutes: existing?.durationMinutes || 0,
+        cardioMinutes,
+        completed: existing?.completed ?? false,
+      });
+    }, 600);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exerciseState, cardioMinutes]);
+
 
   const updateSet = (exIndex: number, setIndex: number, field: keyof ExerciseSet, value: number) => {
     setExerciseState((prev) => {
@@ -239,8 +281,8 @@ function WorkoutLogger({
         <Button
           onClick={() =>
             onComplete({
-              id: existing?.id || generateId(),
-              date: formatDate(new Date()),
+              id: sessionId,
+              date: existing?.date || formatDate(new Date()),
               dayNumber,
               type,
               exercises: exerciseState,
