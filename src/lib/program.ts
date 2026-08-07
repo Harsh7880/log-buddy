@@ -140,3 +140,17 @@ export function getImplicitCompletedDays(
   for (let d = 1; d < active.phase.startDay; d++) set.add(d);
   return set;
 }
+
+/** Calendar date (ISO) for a given program day, derived from phase start dates. */
+export function getDateForDay(
+  dates: PhaseStartDates,
+  day: number,
+  today: Date = new Date(),
+): string | null {
+  const active = getActivePhaseStart(dates, today);
+  if (!active) return null;
+  const d = new Date(active.start);
+  d.setDate(d.getDate() + (day - active.phase.startDay));
+  return toISODate(d);
+}
+

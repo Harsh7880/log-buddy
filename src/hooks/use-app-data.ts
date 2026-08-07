@@ -6,6 +6,7 @@ import type {
   ProgressPhoto,
   UserSettings,
 } from "@/lib/workout-data";
+import type { DailyRecord, PhotoAngle } from "@/lib/daily-log";
 import {
   getCompletedDays,
   getCurrentDay,
@@ -13,9 +14,12 @@ import {
   getImplicitCompletedDays,
   getPhaseForDay,
   getPhaseCompletion,
+  getDateForDay,
+  toISODate,
   DEFAULT_PHASE_START_DATES,
   PROGRAM_LENGTH,
 } from "@/lib/program";
+
 
 const defaultSettings: UserSettings = {
   startDate: new Date().toISOString().split("T")[0]!,
