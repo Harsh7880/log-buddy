@@ -10,6 +10,7 @@ import {
   Calendar,
   Activity,
   Weight,
+  Camera,
 } from "lucide-react";
 import { ProgressRing } from "@/components/progress-ring";
 import { useUserSettings, useWorkouts, useNutrition, useMeasurements, useProgram } from "@/hooks/use-app-data";
@@ -20,6 +21,7 @@ import {
 } from "@/lib/workout-data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { StepsCard, WeeklyStepsCard } from "@/components/steps-card";
 import { SimpleLineChart } from "@/components/charts/simple-line-chart";
 
 export const Route = createFileRoute("/")({
@@ -158,12 +160,45 @@ function DashboardPage() {
         </Card>
       )}
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <section className="space-y-4">
+        <h3 className="text-lg font-bold">Today&apos;s Progress</h3>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <StepsCard />
+          <WeeklyStepsCard />
+        </div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+          <MetricCard
+            icon={Dumbbell}
+            label="Workout"
+            value={currentType === "Rest" ? "Rest" : todayWorkout?.completed ? "Done" : "Pending"}
+          />
+          <MetricCard icon={Droplets} label="Water" value={`${todayNutrition?.water ?? 0} L`} />
+          <MetricCard icon={Flame} label="Calories" value={`${todayNutrition?.calories ?? 0}`} />
+          <MetricCard icon={Activity} label="Protein" value={`${todayNutrition?.protein ?? 0} g`} />
+          <MetricCard icon={Moon} label="Sleep" value={`${todayNutrition?.sleep ?? 0} h`} />
+          <MetricCard icon={Weight} label="Morning Weight" value={`${settings.bodyWeight} kg`} />
+        </div>
+        <Card className="card-elevated hover-lift">
+          <CardContent className="flex items-center justify-between p-5">
+            <div>
+              <p className="font-semibold flex items-center gap-2">
+                <Camera className="h-5 w-5 text-primary" />
+                Progress Photos
+              </p>
+              <p className="text-sm text-muted-foreground">Optional — front, side, back for Day {currentDay}.</p>
+            </div>
+            <Button asChild variant="outline" className="press-scale">
+              <Link to="/photos">Open</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </section>
+
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">
         <MetricCard icon={Flame} label="Streak" value={`${streak} days`} />
         <MetricCard icon={TrendingUp} label="Remaining" value={`${remainingDays} days`} />
-        <MetricCard icon={Droplets} label="Water" value={`${todayNutrition?.water ?? 0} L`} />
-        <MetricCard icon={Moon} label="Sleep" value={`${todayNutrition?.sleep ?? 0} h`} />
       </div>
+
 
 
       <Card className="card-elevated">
