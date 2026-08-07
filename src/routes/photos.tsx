@@ -13,7 +13,6 @@ import {
   fileToCompressedDataUrl,
   type PhotoAngle,
 } from "@/lib/daily-log";
-import { getPhaseForDay } from "@/lib/program";
 
 export const Route = createFileRoute("/photos")({
   head: () => ({
