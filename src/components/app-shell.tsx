@@ -5,6 +5,7 @@ import {
   History,
   Utensils,
   Ruler,
+  Camera,
   User,
   Dumbbell,
 } from "lucide-react";
@@ -16,8 +17,10 @@ const navItems = [
   { to: "/history", label: "History", icon: History },
   { to: "/nutrition", label: "Nutrition", icon: Utensils },
   { to: "/measurements", label: "Body", icon: Ruler },
+  { to: "/photos", label: "Photos", icon: Camera },
   { to: "/profile", label: "Profile", icon: User },
 ];
+
 
 export function AppShell({ children }: { children: ReactNode }) {
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
@@ -70,7 +73,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main className="mx-auto max-w-5xl p-4 md:p-8">{children}</main>
 
       <nav className="fixed bottom-0 left-0 z-50 w-full border-t border-border bg-card md:hidden">
-        <div className="grid h-16 grid-cols-6 items-center">
+        <div className="grid h-16 grid-cols-7 items-center">
           {navItems.map((item) => {
             const active = currentPath === item.to;
             return (

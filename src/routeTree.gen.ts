@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as MeasurementsRouteImport } from './routes/measurements'
 import { Route as NutritionRouteImport } from './routes/nutrition'
+import { Route as PhotosRouteImport } from './routes/photos'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ProgramRouteImport } from './routes/program'
 import { Route as WorkoutRouteImport } from './routes/workout'
@@ -37,6 +38,11 @@ const NutritionRoute = NutritionRouteImport.update({
   path: '/nutrition',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PhotosRoute = PhotosRouteImport.update({
+  id: '/photos',
+  path: '/photos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/history': typeof HistoryRoute
   '/measurements': typeof MeasurementsRoute
   '/nutrition': typeof NutritionRoute
+  '/photos': typeof PhotosRoute
   '/profile': typeof ProfileRoute
   '/program': typeof ProgramRoute
   '/workout': typeof WorkoutRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/history': typeof HistoryRoute
   '/measurements': typeof MeasurementsRoute
   '/nutrition': typeof NutritionRoute
+  '/photos': typeof PhotosRoute
   '/profile': typeof ProfileRoute
   '/program': typeof ProgramRoute
   '/workout': typeof WorkoutRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/history': typeof HistoryRoute
   '/measurements': typeof MeasurementsRoute
   '/nutrition': typeof NutritionRoute
+  '/photos': typeof PhotosRoute
   '/profile': typeof ProfileRoute
   '/program': typeof ProgramRoute
   '/workout': typeof WorkoutRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/measurements'
     | '/nutrition'
+    | '/photos'
     | '/profile'
     | '/program'
     | '/workout'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/measurements'
     | '/nutrition'
+    | '/photos'
     | '/profile'
     | '/program'
     | '/workout'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/measurements'
     | '/nutrition'
+    | '/photos'
     | '/profile'
     | '/program'
     | '/workout'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   HistoryRoute: typeof HistoryRoute
   MeasurementsRoute: typeof MeasurementsRoute
   NutritionRoute: typeof NutritionRoute
+  PhotosRoute: typeof PhotosRoute
   ProfileRoute: typeof ProfileRoute
   ProgramRoute: typeof ProgramRoute
   WorkoutRoute: typeof WorkoutRoute
@@ -151,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NutritionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/photos': {
+      id: '/photos'
+      path: '/photos'
+      fullPath: '/photos'
+      preLoaderRoute: typeof PhotosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile': {
       id: '/profile'
       path: '/profile'
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   HistoryRoute: HistoryRoute,
   MeasurementsRoute: MeasurementsRoute,
   NutritionRoute: NutritionRoute,
+  PhotosRoute: PhotosRoute,
   ProfileRoute: ProfileRoute,
   ProgramRoute: ProgramRoute,
   WorkoutRoute: WorkoutRoute,
@@ -187,13 +208,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
