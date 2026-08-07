@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Play, Pause, RotateCcw, Zap, Wind } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 interface CardioTimerProps {
   defaultSeconds?: number;
@@ -34,6 +35,15 @@ export function CardioTimer({ defaultSeconds = 0, mode = "liss", onComplete }: C
   };
 
   const presets = mode === "sprint" ? [30, 60, 90, 120] : [600, 1200, 1800, 2700];
+  const [customValue, setCustomValue] = useState("");
+  const unitLabel = mode === "sprint" ? "seconds" : "minutes";
+
+  const applyCustom = () => {
+    const n = Number(customValue);
+    if (!Number.isFinite(n) || n <= 0) return;
+    setSeconds(mode === "sprint" ? Math.round(n) : Math.round(n * 60));
+    setRunning(false);
+  };
 
   return (
     <Card className="card-elevated border-primary/20">
@@ -74,6 +84,25 @@ export function CardioTimer({ defaultSeconds = 0, mode = "liss", onComplete }: C
               {mode === "sprint" ? `${p}s` : `${p / 60}m`}
             </button>
           ))}
+        </div>
+
+        <div className="flex items-center justify-center gap-2">
+          <Input
+            type="number"
+            min={1}
+            inputMode="numeric"
+            value={customValue}
+            onChange={(e) => setCustomValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") applyCustom();
+            }}
+            placeholder={`Custom ${unitLabel}`}
+            className="h-9 max-w-[10rem]"
+            aria-label={`Custom timer ${unitLabel}`}
+          />
+          <Button variant="outline" size="sm" onClick={applyCustom} disabled={!customValue}>
+            Set
+          </Button>
         </div>
       </CardContent>
     </Card>
