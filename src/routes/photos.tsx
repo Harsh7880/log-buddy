@@ -565,3 +565,87 @@ function CompareCell({
     </div>
   );
 }
+
+function ExtraSlot({
+  label,
+  src,
+  onReplace,
+  onRename,
+  onRemove,
+  onView,
+}: {
+  label: string;
+  src: string;
+  onReplace: (dataUrl: string) => void;
+  onRename: (label: string) => void;
+  onRemove: () => void;
+  onView: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handle = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    onReplace(await fileToCompressedDataUrl(file));
+  };
+
+  return (
+    <div className="space-y-2">
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handle} />
+      <button onClick={onView} className="block w-full overflow-hidden rounded-lg border border-border">
+        <img src={src} alt={`${label} progress photo`} className="aspect-[3/4] w-full object-cover" />
+      </button>
+      <input
+        value={label}
+        onChange={(e) => onRename(e.target.value)}
+        aria-label="Photo label"
+        className="h-7 w-full rounded-md border border-border bg-card px-2 text-xs"
+      />
+      <div className="flex justify-between gap-1">
+        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => inputRef.current?.click()}>
+          Replace
+        </Button>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onRemove} aria-label={`Delete ${label} photo`}>
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function AddExtraSlot({ onAdd }: { onAdd: (label: string, dataUrl: string) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [label, setLabel] = useState("");
+
+  const handle = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    onAdd(label.trim() || "Photo", await fileToCompressedDataUrl(file));
+    setLabel("");
+  };
+
+  return (
+    <div className="space-y-2">
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handle} />
+      <button
+        onClick={() => inputRef.current?.click()}
+        className="grid aspect-[3/4] w-full place-items-center rounded-lg border border-dashed border-border bg-card text-muted-foreground transition-colors hover:border-primary/50"
+        aria-label="Add optional photo"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
+      <input
+        value={label}
+        onChange={(e) => setLabel(e.target.value)}
+        placeholder="Label (Gym, Abs…)"
+        aria-label="New photo label"
+        className="h-7 w-full rounded-md border border-border bg-card px-2 text-xs"
+      />
+      <Button variant="ghost" size="sm" className="h-7 w-full px-2 text-xs" onClick={() => inputRef.current?.click()}>
+        Add Photo
+      </Button>
+    </div>
+  );
+}
