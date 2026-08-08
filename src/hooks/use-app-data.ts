@@ -15,6 +15,9 @@ import {
   getPhaseForDay,
   getPhaseCompletion,
   getDateForDay,
+  getDateForDayAbsolute,
+  getProgramDayForDate,
+
   toISODate,
   DEFAULT_PHASE_START_DATES,
   PROGRAM_LENGTH,
@@ -67,9 +70,13 @@ export function useDailyLog() {
   const todayISO = toISODate(new Date());
 
   const dayForDate = (iso: string) =>
+    getProgramDayForDate(settings.phaseStartDates, new Date(`${iso}T12:00:00`)) ??
     getCurrentDayFromDates(settings.phaseStartDates, new Date(`${iso}T12:00:00`));
 
-  const dateForDay = (day: number) => getDateForDay(settings.phaseStartDates, day);
+  const dateForDay = (day: number) =>
+    getDateForDayAbsolute(settings.phaseStartDates, day) ??
+    getDateForDay(settings.phaseStartDates, day);
+
 
   const getByDate = (iso: string) => records.find((r) => r.date === iso);
   const getByDay = (day: number) => {

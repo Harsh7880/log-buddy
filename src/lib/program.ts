@@ -154,3 +154,37 @@ export function getDateForDay(
   return toISODate(d);
 }
 
+/** Anchor used to map any calendar date (past or future) to a program day. */
+export function getAnchor(dates: PhaseStartDates): { phase: Phase; start: Date } | null {
+  let best: { phase: Phase; start: Date } | null = null;
+  for (const phase of PHASES) {
+    const iso = dates[String(phase.number)];
+    if (!iso) continue;
+    const start = parseISODate(iso);
+    if (!best || phase.startDay < best.phase.startDay) best = { phase, start };
+  }
+  return best;
+}
+
+/**
+ * Program day for ANY calendar date (including dates before the active phase),
+ * extrapolated from the configured phase start dates. Null when outside 1..100.
+ */
+export function getProgramDayForDate(dates: PhaseStartDates, date: Date): number | null {
+  const anchor = getAnchor(dates);
+  if (!anchor) return null;
+  const day = anchor.phase.startDay + daysBetween(anchor.start, date);
+  if (day < 1 || day > PROGRAM_LENGTH) return null;
+  return day;
+}
+
+/** Calendar date (ISO) for a program day, extrapolated from the anchor phase. */
+export function getDateForDayAbsolute(dates: PhaseStartDates, day: number): string | null {
+  const anchor = getAnchor(dates);
+  if (!anchor) return null;
+  const d = new Date(anchor.start);
+  d.setDate(d.getDate() + (day - anchor.phase.startDay));
+  return toISODate(d);
+}
+
+
