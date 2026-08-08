@@ -72,8 +72,19 @@ function coverPhoto(photos: Partial<Record<PhotoAngle, string>> | undefined) {
 
 function PhotosPage() {
   const { currentDay } = useProgram();
-  const { records, todayISO, getByDate, setPhoto, removePhoto, dateForDay, dayForDate, hydrated } =
-    useDailyLog();
+  const {
+    records,
+    todayISO,
+    getByDate,
+    setPhoto,
+    removePhoto,
+    addExtraPhoto,
+    updateExtraPhoto,
+    removeExtraPhoto,
+    dateForDay,
+    dayForDate,
+    hydrated,
+  } = useDailyLog();
 
   const [selected, setSelected] = useState(todayISO);
   const [month, setMonth] = useState(() => {
