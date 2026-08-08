@@ -65,11 +65,6 @@ function longDate(iso: string) {
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-function coverPhoto(photos: Partial<Record<PhotoAngle, string>> | undefined) {
-  if (!photos) return undefined;
-  for (const a of PHOTO_ANGLES) if (photos[a]) return photos[a];
-  return undefined;
-}
 
 function PhotosPage() {
   const { currentDay } = useProgram();
