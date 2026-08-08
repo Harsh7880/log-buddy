@@ -14,6 +14,13 @@ export const ANGLE_LABELS: Record<PhotoAngle, string> = {
 
 export const STEP_GOAL = 10000;
 
+/** Free-form extra photo for a date (Gym, Abs, custom pose, …). */
+export interface ExtraPhoto {
+  id: string;
+  label: string;
+  url: string;
+}
+
 export interface DailyRecord {
   /** ISO calendar date (YYYY-MM-DD) — the primary key of the record. */
   date: string;
@@ -21,10 +28,11 @@ export interface DailyRecord {
   phase: number;
   steps: number;
   photos: Partial<Record<PhotoAngle, string>>;
+  extras?: ExtraPhoto[];
 }
 
 export function emptyRecord(date: string, programDay: number, phase: number): DailyRecord {
-  return { date, programDay, phase, steps: 0, photos: {} };
+  return { date, programDay, phase, steps: 0, photos: {}, extras: [] };
 }
 
 export function stepStats(steps: number) {

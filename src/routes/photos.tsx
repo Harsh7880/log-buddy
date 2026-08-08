@@ -8,6 +8,7 @@ import {
   ArrowLeftRight,
   ChevronLeft,
   ChevronRight,
+  Plus,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -64,16 +65,22 @@ function longDate(iso: string) {
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-function coverPhoto(photos: Partial<Record<PhotoAngle, string>> | undefined) {
-  if (!photos) return undefined;
-  for (const a of PHOTO_ANGLES) if (photos[a]) return photos[a];
-  return undefined;
-}
 
 function PhotosPage() {
   const { currentDay } = useProgram();
-  const { records, todayISO, getByDate, setPhoto, removePhoto, dateForDay, dayForDate, hydrated } =
-    useDailyLog();
+  const {
+    records,
+    todayISO,
+    getByDate,
+    setPhoto,
+    removePhoto,
+    addExtraPhoto,
+    updateExtraPhoto,
+    removeExtraPhoto,
+    dateForDay,
+    dayForDate,
+    hydrated,
+  } = useDailyLog();
 
   const [selected, setSelected] = useState(todayISO);
   const [month, setMonth] = useState(() => {
@@ -86,9 +93,10 @@ function PhotosPage() {
   const selectedDay = dayForDate(selected);
   const selectedPhase = selectedDay ? getPhaseForDay(selectedDay) : null;
 
-  const selectedPhotoList = PHOTO_ANGLES.filter((a) => record?.photos?.[a]).map(
-    (a) => record!.photos![a]!,
-  );
+  const selectedPhotoList = [
+    ...PHOTO_ANGLES.filter((a) => record?.photos?.[a]).map((a) => record!.photos![a]!),
+    ...(record?.extras ?? []).map((e) => e.url),
+  ];
 
   const openViewer = (src: string, list: string[] = selectedPhotoList) => {
     const pool = list.length ? list : [src];
@@ -96,13 +104,19 @@ function PhotosPage() {
   };
 
   const history = records
-    .filter((r) => Object.keys(r.photos ?? {}).length > 0)
+    .filter((r) => Object.keys(r.photos ?? {}).length > 0 || (r.extras ?? []).length > 0)
     .slice()
     .sort((a, b) => b.date.localeCompare(a.date));
 
   const photosByDate = useMemo(() => {
-    const map = new Map<string, Partial<Record<PhotoAngle, string>>>();
-    for (const r of records) if (Object.keys(r.photos ?? {}).length) map.set(r.date, r.photos);
+    const map = new Map<string, string[]>();
+    for (const r of records) {
+      const list = [
+        ...PHOTO_ANGLES.filter((a) => r.photos?.[a]).map((a) => r.photos![a]!),
+        ...(r.extras ?? []).map((e) => e.url),
+      ];
+      if (list.length) map.set(r.date, list);
+    }
     return map;
   }, [records]);
 
@@ -173,8 +187,8 @@ function PhotosPage() {
             {cells.map((iso, i) => {
               if (!iso) return <div key={`e${i}`} />;
               const photos = photosByDate.get(iso);
-              const cover = coverPhoto(photos);
-              const count = photos ? Object.keys(photos).length : 0;
+              const cover = photos?.[0];
+              const count = photos?.length ?? 0;
               const isToday = iso === todayISO;
               const isSelected = iso === selected;
               return (
@@ -265,8 +279,21 @@ function PhotosPage() {
                   onView={(src) => openViewer(src)}
                 />
               ))}
+              {(record?.extras ?? []).map((extra) => (
+                <ExtraSlot
+                  key={extra.id}
+                  label={extra.label}
+                  src={extra.url}
+                  onReplace={(url) => updateExtraPhoto(selected, extra.id, { url })}
+                  onRename={(label) => updateExtraPhoto(selected, extra.id, { label })}
+                  onRemove={() => removeExtraPhoto(selected, extra.id)}
+                  onView={() => openViewer(extra.url)}
+                />
+              ))}
+              <AddExtraSlot onAdd={(label, url) => addExtraPhoto(selected, label, url)} />
             </div>
           </div>
+
         </CardContent>
       </Card>
 
@@ -289,7 +316,15 @@ function PhotosPage() {
             <p className="text-sm text-muted-foreground">No photos yet. Upload your first angles above.</p>
           )}
           {history.map((r) => {
-            const list = PHOTO_ANGLES.filter((a) => r.photos?.[a]).map((a) => r.photos![a]!);
+            const items = [
+              ...PHOTO_ANGLES.filter((a) => r.photos?.[a]).map((a) => ({
+                key: a as string,
+                label: ANGLE_LABELS[a],
+                url: r.photos![a]!,
+              })),
+              ...(r.extras ?? []).map((e) => ({ key: e.id, label: e.label, url: e.url })),
+            ];
+            const list = items.map((i) => i.url);
             return (
               <div key={r.date} className="rounded-lg border border-border p-3">
                 <button onClick={() => goToDate(r.date)} className="text-left">
@@ -299,16 +334,16 @@ function PhotosPage() {
                   </p>
                 </button>
                 <div className="mt-3 flex flex-wrap gap-3">
-                  {PHOTO_ANGLES.filter((a) => r.photos?.[a]).map((a) => (
-                    <button key={a} onClick={() => openViewer(r.photos![a]!, list)} className="space-y-1 text-left">
+                  {items.map((item) => (
+                    <button key={item.key} onClick={() => openViewer(item.url, list)} className="space-y-1 text-left">
                       <img
-                        src={r.photos![a]!}
-                        alt={`${ANGLE_LABELS[a]} photo from day ${r.programDay}`}
+                        src={item.url}
+                        alt={`${item.label} photo from day ${r.programDay}`}
                         className="h-24 w-20 rounded-md object-cover"
                         loading="lazy"
                       />
                       <span className="block text-[10px] uppercase tracking-wider text-muted-foreground">
-                        {ANGLE_LABELS[a]}
+                        {item.label}
                       </span>
                     </button>
                   ))}
@@ -538,6 +573,90 @@ function CompareCell({
         </div>
       )}
       <p className="text-center text-xs text-muted-foreground">Day {day}</p>
+    </div>
+  );
+}
+
+function ExtraSlot({
+  label,
+  src,
+  onReplace,
+  onRename,
+  onRemove,
+  onView,
+}: {
+  label: string;
+  src: string;
+  onReplace: (dataUrl: string) => void;
+  onRename: (label: string) => void;
+  onRemove: () => void;
+  onView: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handle = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    onReplace(await fileToCompressedDataUrl(file));
+  };
+
+  return (
+    <div className="space-y-2">
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handle} />
+      <button onClick={onView} className="block w-full overflow-hidden rounded-lg border border-border">
+        <img src={src} alt={`${label} progress photo`} className="aspect-[3/4] w-full object-cover" />
+      </button>
+      <input
+        value={label}
+        onChange={(e) => onRename(e.target.value)}
+        aria-label="Photo label"
+        className="h-7 w-full rounded-md border border-border bg-card px-2 text-xs"
+      />
+      <div className="flex justify-between gap-1">
+        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => inputRef.current?.click()}>
+          Replace
+        </Button>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onRemove} aria-label={`Delete ${label} photo`}>
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function AddExtraSlot({ onAdd }: { onAdd: (label: string, dataUrl: string) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [label, setLabel] = useState("");
+
+  const handle = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    onAdd(label.trim() || "Photo", await fileToCompressedDataUrl(file));
+    setLabel("");
+  };
+
+  return (
+    <div className="space-y-2">
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handle} />
+      <button
+        onClick={() => inputRef.current?.click()}
+        className="grid aspect-[3/4] w-full place-items-center rounded-lg border border-dashed border-border bg-card text-muted-foreground transition-colors hover:border-primary/50"
+        aria-label="Add optional photo"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
+      <input
+        value={label}
+        onChange={(e) => setLabel(e.target.value)}
+        placeholder="Label (Gym, Abs…)"
+        aria-label="New photo label"
+        className="h-7 w-full rounded-md border border-border bg-card px-2 text-xs"
+      />
+      <Button variant="ghost" size="sm" className="h-7 w-full px-2 text-xs" onClick={() => inputRef.current?.click()}>
+        Add Photo
+      </Button>
     </div>
   );
 }
