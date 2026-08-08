@@ -265,8 +265,21 @@ function PhotosPage() {
                   onView={(src) => openViewer(src)}
                 />
               ))}
+              {(record?.extras ?? []).map((extra) => (
+                <ExtraSlot
+                  key={extra.id}
+                  label={extra.label}
+                  src={extra.url}
+                  onReplace={(url) => updateExtraPhoto(selected, extra.id, { url })}
+                  onRename={(label) => updateExtraPhoto(selected, extra.id, { label })}
+                  onRemove={() => removeExtraPhoto(selected, extra.id)}
+                  onView={() => openViewer(extra.url)}
+                />
+              ))}
+              <AddExtraSlot onAdd={(label, url) => addExtraPhoto(selected, label, url)} />
             </div>
           </div>
+
         </CardContent>
       </Card>
 
