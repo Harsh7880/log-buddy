@@ -192,8 +192,8 @@ function PhotosPage() {
             {cells.map((iso, i) => {
               if (!iso) return <div key={`e${i}`} />;
               const photos = photosByDate.get(iso);
-              const cover = coverPhoto(photos);
-              const count = photos ? Object.keys(photos).length : 0;
+              const cover = photos?.[0];
+              const count = photos?.length ?? 0;
               const isToday = iso === todayISO;
               const isSelected = iso === selected;
               return (
