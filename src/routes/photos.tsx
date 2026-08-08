@@ -321,7 +321,15 @@ function PhotosPage() {
             <p className="text-sm text-muted-foreground">No photos yet. Upload your first angles above.</p>
           )}
           {history.map((r) => {
-            const list = PHOTO_ANGLES.filter((a) => r.photos?.[a]).map((a) => r.photos![a]!);
+            const items = [
+              ...PHOTO_ANGLES.filter((a) => r.photos?.[a]).map((a) => ({
+                key: a as string,
+                label: ANGLE_LABELS[a],
+                url: r.photos![a]!,
+              })),
+              ...(r.extras ?? []).map((e) => ({ key: e.id, label: e.label, url: e.url })),
+            ];
+            const list = items.map((i) => i.url);
             return (
               <div key={r.date} className="rounded-lg border border-border p-3">
                 <button onClick={() => goToDate(r.date)} className="text-left">
@@ -331,16 +339,16 @@ function PhotosPage() {
                   </p>
                 </button>
                 <div className="mt-3 flex flex-wrap gap-3">
-                  {PHOTO_ANGLES.filter((a) => r.photos?.[a]).map((a) => (
-                    <button key={a} onClick={() => openViewer(r.photos![a]!, list)} className="space-y-1 text-left">
+                  {items.map((item) => (
+                    <button key={item.key} onClick={() => openViewer(item.url, list)} className="space-y-1 text-left">
                       <img
-                        src={r.photos![a]!}
-                        alt={`${ANGLE_LABELS[a]} photo from day ${r.programDay}`}
+                        src={item.url}
+                        alt={`${item.label} photo from day ${r.programDay}`}
                         className="h-24 w-20 rounded-md object-cover"
                         loading="lazy"
                       />
                       <span className="block text-[10px] uppercase tracking-wider text-muted-foreground">
-                        {ANGLE_LABELS[a]}
+                        {item.label}
                       </span>
                     </button>
                   ))}
