@@ -98,9 +98,10 @@ function PhotosPage() {
   const selectedDay = dayForDate(selected);
   const selectedPhase = selectedDay ? getPhaseForDay(selectedDay) : null;
 
-  const selectedPhotoList = PHOTO_ANGLES.filter((a) => record?.photos?.[a]).map(
-    (a) => record!.photos![a]!,
-  );
+  const selectedPhotoList = [
+    ...PHOTO_ANGLES.filter((a) => record?.photos?.[a]).map((a) => record!.photos![a]!),
+    ...(record?.extras ?? []).map((e) => e.url),
+  ];
 
   const openViewer = (src: string, list: string[] = selectedPhotoList) => {
     const pool = list.length ? list : [src];
@@ -108,13 +109,19 @@ function PhotosPage() {
   };
 
   const history = records
-    .filter((r) => Object.keys(r.photos ?? {}).length > 0)
+    .filter((r) => Object.keys(r.photos ?? {}).length > 0 || (r.extras ?? []).length > 0)
     .slice()
     .sort((a, b) => b.date.localeCompare(a.date));
 
   const photosByDate = useMemo(() => {
-    const map = new Map<string, Partial<Record<PhotoAngle, string>>>();
-    for (const r of records) if (Object.keys(r.photos ?? {}).length) map.set(r.date, r.photos);
+    const map = new Map<string, string[]>();
+    for (const r of records) {
+      const list = [
+        ...PHOTO_ANGLES.filter((a) => r.photos?.[a]).map((a) => r.photos![a]!),
+        ...(r.extras ?? []).map((e) => e.url),
+      ];
+      if (list.length) map.set(r.date, list);
+    }
     return map;
   }, [records]);
 
