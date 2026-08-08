@@ -108,6 +108,24 @@ export function useDailyLog() {
       return { ...r, photos };
     });
 
+  const addExtraPhoto = (iso: string, label: string, dataUrl: string) =>
+    upsert(iso, (r) => ({
+      ...r,
+      extras: [
+        ...(r.extras ?? []),
+        { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, label, url: dataUrl },
+      ],
+    }));
+
+  const updateExtraPhoto = (iso: string, id: string, patch: { label?: string; url?: string }) =>
+    upsert(iso, (r) => ({
+      ...r,
+      extras: (r.extras ?? []).map((e) => (e.id === id ? { ...e, ...patch } : e)),
+    }));
+
+  const removeExtraPhoto = (iso: string, id: string) =>
+    upsert(iso, (r) => ({ ...r, extras: (r.extras ?? []).filter((e) => e.id !== id) }));
+
   return {
     records,
     hydrated,
@@ -119,6 +137,9 @@ export function useDailyLog() {
     setSteps,
     setPhoto,
     removePhoto,
+    addExtraPhoto,
+    updateExtraPhoto,
+    removeExtraPhoto,
   };
 }
 
