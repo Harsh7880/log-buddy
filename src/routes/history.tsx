@@ -25,6 +25,8 @@ export const Route = createFileRoute("/history")({
 
 function HistoryPage() {
   const [workouts] = useWorkouts();
+  const [expanded, setExpanded] = useState<string | null>(null);
+
   const sorted = [...workouts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const exportPDF = () => {
