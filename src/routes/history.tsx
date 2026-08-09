@@ -102,24 +102,72 @@ function HistoryPage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {sorted.map((workout) => (
-            <Card key={workout.id} className="card-elevated hover-lift">
-              <CardContent className="flex items-center justify-between p-4">
-                <div>
-                  <p className="font-semibold">{workout.type}</p>
-                  <p className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <CalendarDays className="h-3 w-3" />
-                    Day {workout.dayNumber} · {workout.date}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold">{workout.exercises.length}</p>
-                  <p className="text-xs text-muted-foreground">exercises</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {sorted.map((workout) => {
+            const open = expanded === workout.id;
+            return (
+              <Card key={workout.id} className="card-elevated">
+                <CardContent className="p-0">
+                  <button
+                    type="button"
+                    onClick={() => setExpanded(open ? null : workout.id)}
+                    className="flex w-full items-center justify-between p-4 text-left hover-lift"
+                  >
+                    <div>
+                      <p className="font-semibold">
+                        {workout.type}
+                        {workout.completed && (
+                          <span className="ml-2 rounded-full bg-primary/15 px-2 py-0.5 text-xs text-primary">
+                            Complete
+                          </span>
+                        )}
+                      </p>
+                      <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <CalendarDays className="h-3 w-3" />
+                        Day {workout.dayNumber} · {workout.date}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDuration(workout)} · {completedSetCount(workout)} sets ·{" "}
+                        {Math.round(sessionVolume(workout)).toLocaleString()} kg volume
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold">{workout.exercises.length}</p>
+                      <p className="text-xs text-muted-foreground">exercises</p>
+                    </div>
+                  </button>
+
+                  {open && (
+                    <div className="space-y-3 border-t border-border/60 p-4">
+                      {workout.exercises.map((ex) => (
+                        <div key={ex.exerciseId}>
+                          <p className="text-sm font-semibold">
+                            {ex.name}
+                            {ex.equipment && (
+                              <span className="ml-2 text-xs font-normal text-muted-foreground">
+                                {ex.equipment}
+                              </span>
+                            )}
+                          </p>
+                          <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                            {ex.sets.map((s, i) => (
+                              <span key={i} className="font-mono">
+                                S{i + 1}: {formatSet(s)}
+                                {(s.dropWeight ?? 0) > 0 && ` → ${s.dropWeight} kg × ${s.dropReps ?? 0}`}
+                                {s.completed ? " ✓" : ""}
+                              </span>
+                            ))}
+                          </div>
+                          {ex.notes && <p className="mt-1 text-xs text-muted-foreground">{ex.notes}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
+
       )}
     </div>
   );
