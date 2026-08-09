@@ -16,6 +16,17 @@ export interface Exercise {
 export interface ExerciseSet {
   weight: number;
   reps: number;
+  /** Set marked as done by the user. */
+  completed?: boolean;
+  /** Optional per-set note. */
+  note?: string;
+  /** Duration-based sets (e.g. Plank) store seconds instead of reps. */
+  durationSeconds?: number;
+  /** Taken to failure (no rep target). */
+  toFailure?: boolean;
+  /** Drop-set portion of the set. */
+  dropWeight?: number;
+  dropReps?: number;
 }
 
 export interface LoggedExercise {
@@ -37,12 +48,18 @@ export interface WorkoutSession {
   id: string;
   date: string;
   dayNumber: number;
+  /** Phase number the day belongs to. */
+  phase?: number;
   type: WorkoutType;
   exercises: LoggedExercise[];
   durationMinutes: number;
   cardioMinutes: number;
   completed: boolean;
+  /** Epoch ms when the workout timer started / stopped. */
+  startedAt?: number;
+  endedAt?: number;
 }
+
 
 export interface NutritionEntry {
   date: string;
